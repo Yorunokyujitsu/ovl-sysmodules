@@ -37,8 +37,8 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   of a homebrew executable (.nro). This is intended to be used for sysmodules.
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
-APP_TITLE	:=	Sysmodules
-APP_VERSION	:=	1.2.2
+APP_TITLE	:=	- Sysmodules -
+APP_VERSION	:=	1.3.1
 
 TARGET		:=	ovlSysmodules
 BUILD		:=	build
@@ -47,7 +47,7 @@ DATA		:=	data
 INCLUDES	:=	include libs/libtesla/include
 
 ifeq ($(RELEASE),)
-	APP_VERSION	:=	$(APP_VERSION)-$(shell git describe --dirty --always)
+	APP_VERSION	:=	$(APP_VERSION)
 endif
 
 NO_ICON		:=  1
@@ -60,7 +60,7 @@ ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION=\"v$(APP_VERSION)\"
+CFLAGS	+=	$(INCLUDE) -D__SWITCH__ -DVERSION=\"$(APP_VERSION)\"
 
 CXXFLAGS	:= $(CFLAGS) -fno-exceptions -std=c++20
 

@@ -125,10 +125,10 @@ GuiMain::~GuiMain() {
 }
 
 tsl::elm::Element *GuiMain::createUI() {
-    tsl::elm::OverlayFrame *rootFrame = new tsl::elm::OverlayFrame("Sysmodules", VERSION);
+    tsl::elm::OverlayFrame *rootFrame = new tsl::elm::OverlayFrame("시스템 모듈", "1.3.1-ASAP");
 
     if (this->m_sysmoduleListItems.size() == 0) {
-        const char *description = this->m_scanned ? "No sysmodules found!" : "Scan failed!";
+        const char *description = this->m_scanned ? "찾지 못했습니다!" : "스캔 실패!";
 
         auto *warning = new tsl::elm::CustomDrawer([description](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
             renderer->drawString("\uE150", false, 180, 250, 90, renderer->a(0xFFFF));
@@ -138,18 +138,18 @@ tsl::elm::Element *GuiMain::createUI() {
         rootFrame->setContent(warning);
     } else {
         tsl::elm::List *sysmoduleList = new tsl::elm::List();
-        sysmoduleList->addItem(new tsl::elm::CategoryHeader("Dynamic  |  \uE0E0  Toggle  |  \uE0E3  Toggle auto start", true));
+        sysmoduleList->addItem(new tsl::elm::CategoryHeader("동적 모듈  |  \uE0E0  전환  |  \uE0E3  자동시작", true));
         sysmoduleList->addItem(new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-            renderer->drawString("\uE016  These sysmodules can be toggled at any time.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
+            renderer->drawString("\uE016  해당 시스모듈은 상시 전환 가능합니다.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
         }), 30);
         for (const auto &module : this->m_sysmoduleListItems) {
             if (!module.needReboot)
                 sysmoduleList->addItem(module.listItem);
         }
 
-        sysmoduleList->addItem(new tsl::elm::CategoryHeader("Static  |  \uE0E3  Toggle auto start", true));
+        sysmoduleList->addItem(new tsl::elm::CategoryHeader("정적 모듈  |  \uE0E3  자동시작", true));
         sysmoduleList->addItem(new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-            renderer->drawString("\uE016  These sysmodules need a reboot to work.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
+            renderer->drawString("\uE016  정상 작동을 위해 재부팅이 필요합니다.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
         }), 30);
         for (const auto &module : this->m_sysmoduleListItems) {
             if (module.needReboot)
