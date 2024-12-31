@@ -1,3 +1,4 @@
-[submodule "libs/libtesla"]
-	path = libs/libtesla
-	url = https://github.com/WerWolv/libtesla
+[submodule "libs/libultrahand"]
+	path = libs/libultrahand
+	url = https://github.com/Yorunokyujitsu/libultrahand
+	branch = test
