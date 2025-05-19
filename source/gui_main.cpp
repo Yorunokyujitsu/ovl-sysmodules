@@ -124,11 +124,60 @@ GuiMain::~GuiMain() {
     fsFsClose(&this->m_fs);
 }
 
+// Method to draw available RAM only
+inline void drawMemoryWidget(auto renderer) {
+    static char ramString[24];  // Buffer for RAM string
+    static tsl::Color ramColor = {0,0,0,0};
+    static u64 lastUpdateTick = 0;
+    const u64 ticksPerSecond = armGetSystemTickFreq();
+
+    // Get the current tick count
+    u64 currentTick = armGetSystemTick();
+
+    // Check if this is the first run or at least one second has passed since the last update
+    if (lastUpdateTick == 0 || currentTick - lastUpdateTick >= ticksPerSecond) {
+        // Update RAM information
+        u64 RAM_Used_system_u, RAM_Total_system_u;
+        svcGetSystemInfo(&RAM_Used_system_u, 1, INVALID_HANDLE, 2);
+        svcGetSystemInfo(&RAM_Total_system_u, 0, INVALID_HANDLE, 2);
+
+        // Calculate free RAM and store in the buffer
+        float freeRamMB = (static_cast<float>(RAM_Total_system_u - RAM_Used_system_u) / (1024.0f * 1024.0f));
+        snprintf(ramString, sizeof(ramString), "%.2f MB %s", freeRamMB, ult::FREE.c_str());
+
+        if (freeRamMB >= 9.0f){
+            ramColor = tsl::healthyRamTextColor; // Green: R=0, G=15, B=0
+        } else if (freeRamMB >= 3.0f) {
+            ramColor = tsl::neutralRamTextColor; // Orange-ish: R=15, G=10, B=0 → roughly RGB888: 255, 170, 0
+        } else {
+            ramColor = tsl::badRamTextColor; // Red: R=15, G=0, B=0
+        }
+        // Update the last update tick
+        lastUpdateTick = currentTick;
+    }
+
+    // Draw separator line (if necessary)
+    renderer->drawRect(245, 23, 1, 49, renderer->a(tsl::separatorColor));
+
+    size_t y_offset = 55; // Adjusted y_offset for drawing
+
+    // Draw free RAM string
+    renderer->drawString(ramString, false, tsl::cfg::FramebufferWidth - tsl::gfx::calculateStringWidth(ramString, 20, true) - 22, y_offset, 20, renderer->a(ramColor));
+}
+
 tsl::elm::Element *GuiMain::createUI() {
-    tsl::elm::OverlayFrame *rootFrame = new tsl::elm::OverlayFrame("Sysmodules", VERSION);
+    //tsl::elm::OverlayFrame *rootFrame = new tsl::elm::OverlayFrame("시스템 모듈", "1.3.3-ASAP");
+
+    auto *rootFrame = new tsl::elm::HeaderOverlayFrame(97);
+    rootFrame->setHeader(new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
+        renderer->drawString("시스템 모듈", false, 20, 50+2, 32, renderer->a(tsl::defaultOverlayColor));
+        renderer->drawString("1.3.3-ASAP", false, 20, 50+23, 15, renderer->a(tsl::versionTextColor));
+
+        drawMemoryWidget(renderer);
+    }));
 
     if (this->m_sysmoduleListItems.size() == 0) {
-        const char *description = this->m_scanned ? "No sysmodules found!" : "Scan failed!";
+        const char *description = this->m_scanned ? "찾지 못했습니다!" : "스캔 실패!";
 
         auto *warning = new tsl::elm::CustomDrawer([description](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
             renderer->drawString("\uE150", false, 180, 250, 90, renderer->a(0xFFFF));
@@ -138,18 +187,18 @@ tsl::elm::Element *GuiMain::createUI() {
         rootFrame->setContent(warning);
     } else {
         tsl::elm::List *sysmoduleList = new tsl::elm::List();
-        sysmoduleList->addItem(new tsl::elm::CategoryHeader("Dynamic  |  \uE0E0  Toggle  |  \uE0E3  Toggle auto start", true));
+        sysmoduleList->addItem(new tsl::elm::CategoryHeader("동적 모듈  |  \uE0E0  전환  |  \uE0E3  자동시작", true));
         sysmoduleList->addItem(new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-            renderer->drawString("\uE016  These sysmodules can be toggled at any time.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
+            renderer->drawString("\uE016  해당 시스모듈은 상시 전환 가능합니다.", false, x + 5, y + 20, 15, renderer->a(tsl::accentTextColor));
         }), 30);
         for (const auto &module : this->m_sysmoduleListItems) {
             if (!module.needReboot)
                 sysmoduleList->addItem(module.listItem);
         }
 
-        sysmoduleList->addItem(new tsl::elm::CategoryHeader("Static  |  \uE0E3  Toggle auto start", true));
+        sysmoduleList->addItem(new tsl::elm::CategoryHeader("정적 모듈  |  \uE0E3  자동시작", true));
         sysmoduleList->addItem(new tsl::elm::CustomDrawer([](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
-            renderer->drawString("\uE016  These sysmodules need a reboot to work.", false, x + 5, y + 20, 15, renderer->a(tsl::style::color::ColorDescription));
+            renderer->drawString("\uE016  정상 작동을 위해 재부팅이 필요합니다.", false, x + 5, y + 20, 15, renderer->a(tsl::accentTextColor));
         }), 30);
         for (const auto &module : this->m_sysmoduleListItems) {
             if (module.needReboot)
