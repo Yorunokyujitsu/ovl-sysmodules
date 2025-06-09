@@ -171,7 +171,7 @@ tsl::elm::Element *GuiMain::createUI() {
     auto *rootFrame = new tsl::elm::HeaderOverlayFrame(97);
     rootFrame->setHeader(new tsl::elm::CustomDrawer([this](tsl::gfx::Renderer *renderer, s32 x, s32 y, s32 w, s32 h) {
         renderer->drawString("시스템 모듈", false, 20, 50+2, 32, renderer->a(tsl::defaultOverlayColor));
-        renderer->drawString("1.3.3-ASAP", false, 20, 50+23, 15, renderer->a(tsl::versionTextColor));
+        renderer->drawString("1.3.4-ASAP", false, 20, 50+23, 15, renderer->a(tsl::versionTextColor));
 
         drawMemoryWidget(renderer);
     }));
